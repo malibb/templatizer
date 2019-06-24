@@ -1,0 +1,85 @@
+<link rel="import" href="../polymer/polymer-element.html">
+
+<dom-module id="dom-custom-repeat">
+    <template>
+        <slot id="slot"></slot>
+        <div class="content"></div>
+        <dom-repeat items='[{"name": "Aló"}]'>
+            <template>
+                <li>
+                    <button on-click="_clicked">[[item.name]]</button>
+                </li>
+            </template>
+        </dom-repeat>
+    </template>
+
+    <script>
+      /**
+       * `dom-custom-repeat`
+       *
+       *
+       * @customElement
+       * @polymer
+       * @demo demo/index.html
+       */
+      class DomCustomRepeat extends Polymer.Element {
+        static get is() {
+          return 'dom-custom-repeat';
+        }
+
+        static get properties() {
+          return {
+            items: {
+              type: Array,
+              value: () => [],
+              observer: 'render'
+            },
+            as: {
+              type: String,
+              value: 'item'
+            },
+            indexAs: {
+              type: String,
+              value: 'index'
+            }
+          };
+        }
+
+        render() {
+          const container = this.shadowRoot.querySelector('.content');
+          const template = this.shadowRoot.querySelector('#slot');
+          container.innerHTML = '';
+          const nodes = template.assignedNodes();
+          for (const node of nodes) {
+            if (node.nodeName === 'TEMPLATE') {
+              this._iterateNode(node);
+              this.dispatchEvent(new CustomEvent('dom-changed', {
+                detail: this.items
+              }));
+              return;
+            }
+          }
+          throw new Error('A template is required in the slot for templatize');
+        }
+
+        _iterateNode(template) {
+          for (const index in this.items) {
+            const _element = this.items[index];
+            const modelInstance = {};
+            modelInstance[this.as] = _element;
+            modelInstance[this.indexAs] = index;
+            const TemplateClass = Polymer.Templatize.templatize(template);
+            const instance = new TemplateClass(modelInstance);
+            const customTemplate = this.shadowRoot.querySelector('.content');
+            customTemplate.appendChild(instance.root);
+          }
+        }
+
+        _clicked(event) {
+          console.log(event);
+        }
+      }
+
+      window.customElements.define(DomCustomRepeat.is, DomCustomRepeat);
+    </script>
+</dom-module>
