@@ -4,13 +4,6 @@
     <template>
         <slot id="slot"></slot>
         <div class="content"></div>
-        <dom-repeat items='[{"name": "Aló"}]'>
-            <template>
-                <li>
-                    <button on-click="_clicked">[[item.name]]</button>
-                </li>
-            </template>
-        </dom-repeat>
     </template>
 
     <script>
@@ -67,16 +60,17 @@
             const _element = this.items[index];
             const modelInstance = {};
             modelInstance[this.as] = _element;
-            modelInstance[this.indexAs] = index;
+            modelInstance[this.indexAs] = Number(index);
             const TemplateClass = Polymer.Templatize.templatize(template);
             const instance = new TemplateClass(modelInstance);
             const customTemplate = this.shadowRoot.querySelector('.content');
+            for (const child of instance.root.children) {
+              child.addEventListener('click', event => {
+                event.model = modelInstance;
+              }, true)
+            }
             customTemplate.appendChild(instance.root);
           }
-        }
-
-        _clicked(event) {
-          console.log(event);
         }
       }
 
